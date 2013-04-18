@@ -143,16 +143,36 @@ int write_bmp(struct image *img) {
 
 void sobel_filter(struct image *img)
 {
-	int i=1,j=1;
+	int i=1,j=1, x = 0, y = 0, roff = 0, coff = 0, weight = 0;
 	unsigned char *p;
 	img->omg_buf = (unsigned char *) malloc((size_t) img->size);
-	for( i = 1; i < ( img->height - 1 ); i++ )
+	
+	for( i=0; i < img->height; i++)
+	{
+		for( j=0; j < img->width; j++)
+		{
+			x = 0; y = 0;
+			if( (i > 0) && ( i < (img->height - 1)) && (j > 0) && (j < (img->width -1)))
+			{
+				for(roff = -1; roff <=1; roff++)
+				{
+					for(coff = -1; coff <= 1; coff++)
+					{
+						x += *(img->img_buf + (i+roff)*img->width + (j+coff)) * sobel_mask[0][1+roff][1+coff];
+						y += *(img->img_buf + (i+roff)*img->width + (j+coff)) * sobel_mask[1][1+roff][1+coff];
+					}
+				}
+				weight = abs(x) + abs(y);
+				p = img->omg_buf + i*img->width + j;
+				*p = weight;
+			}
+		}
+	}
+
+/*	for( i = 1; i < ( img->height - 1 ); i++ )
 	{	
 		for( j = 1; j < ( img->width - 1 ); j++ )
 		{
-//			img->omg_buf[i-1][j-1] = (short) img->img_buf[i-1][j+1] - ( short )img->img_buf[i-1][j-1] +
-//																2*((short) img->img_buf[i][j+1] - (short) img->img_buf[i][j-1]) +
-//																(short)img->img_buf[i+1][j+1] - ( short )img->img_buf[i+1][j-1];
 			p = (img->omg_buf + ((i-1)*img->width) +(j-1));
 *p = (unsigned char) *(img->img_buf + ((i-1)*img->width) + (j+1)) - ( unsigned char )*(img->img_buf + ((i-1)*img->width)+ (j-1)) +
 																2*((unsigned char) *(img->img_buf + i*img->width + (j+1)) - (unsigned char) *(img->img_buf + i*img->width + (j-1))) +
@@ -160,6 +180,7 @@ void sobel_filter(struct image *img)
 
 		}
 	}
+*/
 }
 
 
