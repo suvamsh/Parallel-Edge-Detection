@@ -9,7 +9,8 @@
 
 struct image
 {
-	int height, width, size;
+	int height, width;
+	double size;
 	unsigned int data_offset;
 	unsigned char *img_buf;
 	unsigned char *omg_buf;
@@ -24,13 +25,13 @@ struct image
  // sobel mask
 int sobel_mask[2][3][3] = 
 { 
-	{{-1,-0,1},
-	{-2 , 0, 2}, 
-	{-1 , 0, 1}},
+	{{-1,-2,-1},
+	{0,0,0}, 
+	{1,2,1}},
 					  
-	{{-1, 2, 1}, 
-	{0, 0, 0}, 
-	{1, 2, -1}} 
+	{{-1,0,1}, 
+	{-2, 0,2}, 
+	{-1,0,1}} 
 };
 
  // bitmap header
@@ -74,7 +75,9 @@ int read_bmp(struct image *img)
 	img->width = *(int *)&bmp[22];
 	printf("height = %d, width43534 = %d\n",img->height, img->width);
 	//as there are 3 values [RGB] per pixel assuming input image is color
-	img->size = 3 * img->height * img->width; 
+	img->size = 3.0 * (double) img->height * (double) img->width ; 
+	printf("raw size = %lf", (double) 3 * img->height * img->width);	
+	printf("IMAGE SIZE = %lf\n", img->size);
 	img->img_buf = (unsigned char *) malloc((size_t) img->size);
 
 //	img_out = (unsigned char *) malloc((size_t) size);
@@ -143,10 +146,9 @@ int write_bmp(struct image *img) {
 
 void sobel_filter(struct image *img)
 {
-	int i=1,j=1, x = 0, y = 0, roff = 0, coff = 0, weight = 0;
-	unsigned char *p;
+	int i=0,j=0, roff = 0, coff = 0, weight = 0;
+	unsigned char *p, x, y;
 	img->omg_buf = (unsigned char *) malloc((size_t) img->size);
-	
 	for( i=0; i < img->height; i++)
 	{
 		for( j=0; j < img->width; j++)
@@ -158,8 +160,8 @@ void sobel_filter(struct image *img)
 				{
 					for(coff = -1; coff <= 1; coff++)
 					{
-						x += *(img->img_buf + (i+roff)*img->width + (j+coff)) * sobel_mask[0][1+roff][1+coff];
-						y += *(img->img_buf + (i+roff)*img->width + (j+coff)) * sobel_mask[1][1+roff][1+coff];
+						x += *(img->img_buf + (i*img->width + roff) + (j+coff)) * sobel_mask[0][1+roff][1+coff];
+						y += *(img->img_buf + (i*img->width + coff) + (j+coff)) * sobel_mask[1][1+roff][1+coff];
 					}
 				}
 				weight = abs(x) + abs(y);
@@ -200,14 +202,14 @@ int main()
 	for(; i < img->size; i++)
 //		printf("%d ",img->img_buf[i]);
 	img->target_fname = "lena_sobel.bmp";
-	printf("height = %d, width = %d\n", img->height, img->width);
+//	printf("height = %d, width = %d\n", img->height, img->width);
 	//apply sobel
 	printf("About to sobel!\n");
 	sobel_filter(img);
 
 	//write image to file
 	write_bmp(img);	
-
+	free(img);
 	return 0;
 }
  
