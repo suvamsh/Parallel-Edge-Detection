@@ -198,10 +198,20 @@
  int main() {
    time_t seconds;
    seconds = time(NULL);
-   printf("time is %ld \n", seconds/3600);
-   read_bmp("lena.bmp"); // 24 bit gray level image
-   sobel(180.0);
-   write_bmp("lena_sobel.bmp");
+   char original[20];
+   char final[20];
+   printf("time is %ld \n", seconds);
+   int i = 0;
+   for(i = 0; i < 20; i++)
+   {
+     sprintf(original, "input/%d.bmp", i); 
+     printf("%s\n",original);
+     read_bmp(original); // 24 bit gray level image
+     sobel(180.0);
+     sprintf(final, "output/%d.bmp", i);
+     printf("%s\n",final);
+     write_bmp(final);
+   }
    seconds = time(NULL);
-   printf("time is %ld \n", seconds/3600);
+   printf("time is %ld \n", seconds);
  }
