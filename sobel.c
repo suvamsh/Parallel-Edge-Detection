@@ -1,6 +1,7 @@
  #include <stdio.h>
  #include <stdlib.h>
  #include <math.h>
+ #include <time.h>
  
  #define MASK_N 2
  #define MASK_X 3
@@ -195,7 +196,12 @@
  }
    
  int main() {
+   time_t seconds;
+   seconds = time(NULL);
+   printf("time is %ld \n", seconds/3600);
    read_bmp("lena.bmp"); // 24 bit gray level image
    sobel(180.0);
    write_bmp("lena_sobel.bmp");
+   seconds = time(NULL);
+   printf("time is %ld \n", seconds/3600);
  }
