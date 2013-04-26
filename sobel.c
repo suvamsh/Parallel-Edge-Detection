@@ -162,7 +162,8 @@
         
    // file size  
    file_size = width * height * byte_per_pixel + rgb_raw_data_offset;
-   header[2] = (unsigned char)(file_size & 0x000000ff);
+		printf("file size = %d\n", file_size);
+	 header[2] = (unsigned char)(file_size & 0x000000ff);
    header[3] = (file_size >> 8)  & 0x000000ff;
    header[4] = (file_size >> 16) & 0x000000ff;
    header[5] = (file_size >> 24) & 0x000000ff;
@@ -186,7 +187,8 @@
    fwrite(header, sizeof(unsigned char), rgb_raw_data_offset, fp_t);
    
    // write image
-   fwrite(image_t, sizeof(unsigned char), (size_t)(long)width * height * byte_per_pixel, fp_t);
+   printf("size = %lf\n", (double) width*height*byte_per_pixel);
+	 fwrite(image_t, sizeof(unsigned char), (size_t)(long)width * height * byte_per_pixel, fp_t);
       
    fclose(fp_s);
    fclose(fp_t);
@@ -196,6 +198,7 @@
    
  int main() {
    read_bmp("lena.bmp"); // 24 bit gray level image
-   sobel(180.0);
+   printf("height = %d. width = %d\n", height, width);
+	 sobel(90.0);
    write_bmp("lena_sobel.bmp");
  }
