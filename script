@@ -1,0 +1,15 @@
+#!/bin/bash
+
+i=2
+file1=lena_$i.bmp
+
+i=2
+while [ $i -le 144 ];do 
+	file1=lena_$i.bmp
+	cp lena.bmp $file1
+
+	i=$(( $i + 1 ))
+	done
+
+	echo " 100 files copied"
+	

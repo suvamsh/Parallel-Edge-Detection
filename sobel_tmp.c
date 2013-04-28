@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <omp.h>
+#include <time.h>
+#include <sys/time.h>
+#include <string.h>
 
 struct image
 {
@@ -15,7 +19,7 @@ struct image
 	unsigned char *bw_buf;
 	unsigned char bits_per_pixel;
 	unsigned short byte_per_pixel;
-	unsigned char *source_fname, *target_fname;
+	unsigned char source_fname[25], target_fname[25];
 };
 
 //sobel operator mask
@@ -154,56 +158,83 @@ int sobel(struct image *img, double lim)
 	unsigned char r, g, b;
 	double weight[2] = {0.0};
 	double tot;
-	
-	for(y=0; y < img->height; ++y)
+	//#pragma omp parallel
 	{
-		for(x=0; x < img->width; ++x)
+		//#pragma omp for //schedule (dynamic, 512/12)
+		for(y=0; y < img->height; ++y)
 		{
-			for(i=0; i < 2; ++i)
+			for(x=0; x < img->width; ++x)
 			{
-				weight[i] = 0.0;
-				//loops to apply mask
-				for(v = -1; v != 2; ++v)
+				for(i=0; i < 2; ++i)
 				{
-					for(u = -1; u != 2; ++u)
+					weight[i] = 0.0;
+					//loops to apply mask
+					for(v = -1; v != 2; ++v)
 					{
-						if(x + u >= 0 && x + u < img->width && y + v >= 0 && y + v < img->height)
+						for(u = -1; u != 2; ++u)
 						{
-							r = *(img->img_buf + img->byte_per_pixel * (img->width * (y+v) + (x+u)) + 2);
-							g = *(img->img_buf + img->byte_per_pixel * (img->width * (y+v) + (x+u)) + 1);
-							b = *(img->img_buf + img->byte_per_pixel * (img->width * (y+v) + (x+u)) + 0);
-							weight[i] += ((r+g+b)/3) * sobel_mask[i][u + 1][v + 1];
+							if(x + u >= 0 && x + u < img->width && y + v >= 0 && y + v < img->height)
+							{
+								r = *(img->img_buf + img->byte_per_pixel * (img->width * (y+v) + (x+u)) + 2);
+								g = *(img->img_buf + img->byte_per_pixel * (img->width * (y+v) + (x+u)) + 1);
+								b = *(img->img_buf + img->byte_per_pixel * (img->width * (y+v) + (x+u)) + 0);
+								weight[i] += ((r+g+b)/3) * sobel_mask[i][u + 1][v + 1];
+							}
 						}
 					}
+				}//end of i loop
+				tot = 0.0;
+				//compute sobel value using pythogoras theorem
+				for(i=0 ; i < 2; ++i)
+				{
+					tot += weight[i] * weight[i];
 				}
-			}//end of i loop
-			tot = 0.0;
-			//compute sobel value using pythogoras theorem
-			for(i=0 ; i < 2; ++i)
-			{
-				tot += weight[i] * weight[i];
-			}
-			tot = sqrt(tot);
+				tot = sqrt(tot);
 
-			if( tot-lim >= 0)
-			{
-				//if greater then make all black
-				*(img->omg_buf +  img->byte_per_pixel*(img->width * y + x) + 2) = 0;
-				*(img->omg_buf +  img->byte_per_pixel*(img->width * y + x) + 1) = 0;
-				*(img->omg_buf +  img->byte_per_pixel*(img->width * y + x) + 0) = 0;
-			}
-			else
-			{
-				//if less then amke all white
-				*(img->omg_buf + img->byte_per_pixel*(img->width * y + x) + 2) = 255;
-				*(img->omg_buf + img->byte_per_pixel*(img->width * y + x) + 1) = 255;
-				*(img->omg_buf + img->byte_per_pixel*(img->width * y + x) + 0) = 255;
+				if( tot-lim >= 0)
+				{
+					//if greater then make all black
+					*(img->omg_buf +  img->byte_per_pixel*(img->width * y + x) + 2) = 0;
+					*(img->omg_buf +  img->byte_per_pixel*(img->width * y + x) + 1) = 0;
+					*(img->omg_buf +  img->byte_per_pixel*(img->width * y + x) + 0) = 0;
+				}
+				else
+				{
+					//if less then amke all white
+					*(img->omg_buf + img->byte_per_pixel*(img->width * y + x) + 2) = *(img->img_buf + img->byte_per_pixel * (img->width * y + x) + 2);
+					*(img->omg_buf + img->byte_per_pixel*(img->width * y + x) + 1) = *(img->img_buf + img->byte_per_pixel * (img->width * y + x) + 1);
+					*(img->omg_buf + img->byte_per_pixel*(img->width * y + x) + 0) = *(img->img_buf + img->byte_per_pixel * (img->width * y + x) + 0);
+				}
 			}
 		}
 	}
 	return 0;
 }
 
+
+char* itoa(int i, char b[])
+{
+	char const digit[] = "0123456789";
+	char* p = b;
+	if(i<0)
+	{
+		*p++ = '-';
+		i = -1;
+	}
+	int shifter = i;
+	do
+	{ //Move to where representation ends
+		++p;
+		shifter = shifter/10;
+	}while(shifter);
+	*p = '\0';
+	do
+	{ //Move back, inserting digits as u go
+		*--p = digit[i%10];
+		i = i/10;
+	}while(i);
+	return b;
+}
 
 
 
@@ -212,22 +243,57 @@ int sobel(struct image *img, double lim)
 int main()
 {
 	struct image *img = (struct image *) malloc( sizeof(struct image));
-	img->source_fname = "lena.bmp";	
-	img->target_fname = "lena_sobel.bmp";
-	int height=0, width=0;
+	int height=0, width=0, i;
+	struct timeval start, end;
+	long double elapsed;
+	struct image img1[144];
+
+	//img->source_fname = "lena.bmp";	
+	//img->target_fname = "lena_sobel.bmp";
 	printf("Welcome to Sobel Filter!\n");
+	char num[10], s_file_name[25] = "s_image/lena_", t_fname[25] = "t_image/lena_sobel_";
+	for(i=0 ; i < 144; i++)
+	{
+		//creating the correct string for filename
+		itoa(i+1, num);
+		strcat(s_file_name,num);
+		strcat(t_fname, num);
+		strcat(s_file_name,".bmp");
+		strcat(t_fname, ".bmp");
+		strcpy(img1[i].source_fname, s_file_name); 
+		strcpy(img1[i].target_fname, t_fname);
+		//printf("file_name = %s\n", img1[i].source_fname);
+		//printf("target name = %s\n", img1[i].target_fname);
+		strcpy(s_file_name,"s_image/lena_");
+		strcpy(t_fname, "t_image/lena_sobel_");
+	}
 
-	//read image into struct
-	read_bmp(img);
 
-	printf("Image: %s\nHeight: %d\nWidth: %d\nSize: %lf\n",img->source_fname, img->height, img->width, img->size);
+
+
+	
+	//printf("Image: %s\nHeight: %d\nWidth: %d\nSize: %lf\nApplying sobel...\n",img->source_fname, img->height, img->width, img->size);
+
 	//apply sobel
-	printf("Applying sobel...");
-	sobel(img, 90.0);
-	printf("Done\n");
+	//printf("Applying sobel...");
+	gettimeofday(&start, NULL);
+	#pragma omp parallel
+	{
+		//#pragma omp barrier
+		#pragma omp for schedule(static, 144/12)
+		for(i=0; i<144; i++)
+		{
+			read_bmp(&img1[i]);
+			sobel(&img1[i], 90.0);
+			write_bmp(&img1[i]);
+		}
+  }
+	gettimeofday(&end, NULL);
+	elapsed = ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec));
+	printf("Done\nTime taken: %ld\n", ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
 	//write image to file
-	write_bmp(img);	
-	free(img);
+	//write_bmp(img);	
+	//free(img1);
 	return 0;
 }
  
