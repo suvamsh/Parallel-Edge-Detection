@@ -1,12 +1,17 @@
-To setup project execute the "compile" script
+To setup project run the cd into "s_image" and run "script"
 
-$ ./compile
+$ ./script
 
 You may need to set permissions with the following if you get an error
 
-$ chmod +x compile
+$ chmod +x script
 
-This script will setup and compile the project.
+Then cd to the main project directory. Here you can use the "Makefile" to compile the project
+
+$ ./Makefile
+
+Again you may have similar permission issues.
+
 To execute make sure you are in a parallel environment then you can execute 
 
 $ ./parallel_sobel
