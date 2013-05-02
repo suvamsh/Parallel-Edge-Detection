@@ -1,3 +1,4 @@
+//Parallel and optimized Sobel Edge Detection
 //Suvamsh Shivaprasad - ss56236
 //Ankit Tandon - at24473 
 
@@ -10,6 +11,8 @@
 #include <string.h>
 #include <emmintrin.h> //library for vectorization
 
+#define ITERS 1440 //number of images to process
+
 struct image
 {
 	int height, width;
@@ -17,10 +20,10 @@ struct image
 	unsigned int data_offset;
 	unsigned char *img_buf;
 	unsigned char *omg_buf;
-	unsigned char *bw_buf;
 	unsigned char bits_per_pixel;
 	unsigned short byte_per_pixel;
-	unsigned char source_fname[27], target_fname[27];
+	unsigned char source_fname[27]; 
+	unsigned char target_fname[27];
 };
 
 //sobel operator mask
@@ -218,7 +221,7 @@ int sobel(struct image *img, double lim)
 	return 0;
 }
 
-
+//function to convert an integer to string
 char* itoa(int i, char b[])
 {
 	char const digit[] = "0123456789";
@@ -249,16 +252,15 @@ char* itoa(int i, char b[])
 
 int main()
 {
-	struct image *img = (struct image *) malloc( sizeof(struct image));
 	int height=0, width=0, i;
 	struct timeval start, end;
-	struct image img1[1440];
+	struct image img1[ITERS];
 
 	//img->source_fname = "lena.bmp";	
 	//img->target_fname = "lena_sobel.bmp";
 	printf("Welcome to Sobel Filter!\n");
 	char num[10], s_file_name[27] = "s_image/lena_", t_fname[27] = "t_image/lena_sobel_";
-	for(i=0 ; i < 1440; i++)
+	for(i=0 ; i < ITERS; i++)
 	{
 		//creating the correct string for filename
 		itoa(i+1, num);
@@ -273,36 +275,28 @@ int main()
 		strcpy(s_file_name,"s_image/lena_");
 		strcpy(t_fname, "t_image/lena_sobel_");
 	}
-
-
-
 	
-	//printf("Image: %s\nHeight: %d\nWidth: %d\nSize: %lf\nApplying sobel...\n",img->source_fname, img->height, img->width, img->size);
-
 	//apply sobel
-	//printf("Applying sobel...");
 	gettimeofday(&start, NULL);
 	#pragma omp parallel num_threads(12)
 	{
 		//#pragma omp barrier
 		#pragma omp for schedule(static, 12)
-		for(i=0; i < 1440; i++)
+		for(i=0; i < ITERS; i++)
 		{
 			read_bmp(&img1[i]);
 		}
 		
 		//#pragma omp barrier
 		#pragma omp for schedule(static, 12)
-		for(i=0; i<1440; i++)
+		for(i=0; i < ITERS; i++)
 		{
-			//read_bmp(&img1[i]);
 			sobel(&img1[i], 90.0);
-			//write_bmp(&img1[i]);
 		}
 
 		//#pragma omp barrier
 		#pragma omp for schedule(static, 12)
-		for(i=0; i < 1440; i++)
+		for(i=0; i < ITERS; i++)
 		{
 			write_bmp(&img1[i]);
 		}
@@ -310,12 +304,12 @@ int main()
   }
 	gettimeofday(&end, NULL);
 	printf("Done\nParallel Time taken: %ld\n", ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
-	//write image to file
-	//write_bmp(img);	
-	//free(img1);
 	return 0;
 }
  
+
+
+//***************PREVIOUS UNSUCCESSFUL IMPLEMENTATIONS************************************** 
 /*
 void sobel_filter(struct image *img)
 {
