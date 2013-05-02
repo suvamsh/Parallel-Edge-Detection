@@ -1,0 +1,15 @@
+To setup project execute the "compile" script
+
+$ ./compile
+
+You may need to set permissions with the following if you get an error
+
+$ chmod +x compile
+
+This script will setup and compile the project.
+To execute make sure you are in a parallel environment then you can execute 
+
+$ ./parallel_sobel
+
+To execute the serial implementation on any environment 
+$ ./serial_sobel
