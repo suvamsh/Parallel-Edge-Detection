@@ -4,12 +4,12 @@ i=2
 file1=lena_$i.bmp
 
 i=1
-while [ $i -le 144 ];do 
+while [ $i -le 1440 ];do 
 	file1=lena_$i.bmp
 	cp lena.bmp $file1
 
 	i=$(( $i + 1 ))
 	done
 
-	echo " 100 files copied"
+	echo " 1440 files copied"
 	

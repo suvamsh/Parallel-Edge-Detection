@@ -24,3 +24,5 @@ sleep 1800
 --------------------------------------------------------------------------------
 TACC: Done.
 File: /tmp/my_bash_env.1161560
+TACC: Cleaning up after job: 1161560
+TACC: Done.
