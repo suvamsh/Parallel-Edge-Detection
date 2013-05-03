@@ -1,11 +1,6 @@
-//Parallel and optimized Sobel Edge Detection
-//Suvamsh Shivaprasad - ss56236
-//Ankit Tandon - at24473 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <omp.h>
 #include <time.h>
 #include <sys/time.h>
 #include <string.h>
@@ -258,7 +253,7 @@ int main()
 	//img->source_fname = "lena.bmp";	
 	//img->target_fname = "lena_sobel.bmp";
 	printf("Welcome to Sobel Filter!\n");
-	char num[10], s_file_name[27] = "s_image/lena_", t_fname[27] = "t_image/lena_sobel_";
+	char num[10], s_file_name[27] = "s_image/lena_", t_fname[27] = "tl_image/lena_sobel_";
 	for(i=0 ; i < ITERS; i++)
 	{
 		//creating the correct string for filename
@@ -276,53 +271,29 @@ int main()
 	}
 	
 	//apply sobel
-	//#pragma omp parallel num_threads(12)
-	{
-		//#pragma omp barrier
 	gettimeofday(&start, NULL);
-		#pragma omp parallel num_threads(12)
-		{
-		#pragma omp for schedule(static, 12)
 		for(i=0; i < ITERS; i++)
 		{
 			read_bmp(&img1[i]);
 		}
-		#pragma omp barrier
-		}
 		gettimeofday(&end, NULL);	
-			printf("Done\nParallel Time taken(read): %ld\n", ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
+			printf("Done\nSerial Time taken(read): %ld\n", ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
 
 	gettimeofday(&start, NULL);
-	#pragma omp parallel num_threads(12)
-	{
-		#pragma omp for schedule(static, 12)
 		for(i=0; i < ITERS; i++)
 		{
 			sobel(&img1[i], 90.0);
 		}
-		#pragma omp barrier
-	}
 		gettimeofday(&end, NULL);
-		printf("Done\nParallel Time taken(sobel): %ld\n", ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
+		printf("Done\nSerial Time taken(sobel): %ld\n", ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
 
-		//#pragma omp barrier
 	gettimeofday(&start, NULL);
-	//#pragma omp parallel num_threads(12)
-	{
-		//#pragma omp for //schedule(static, 120)
 		for(i=0; i < ITERS; i++)
 		{
 			write_bmp(&img1[i]);
 		}
-	//	#pragma omp barrier
-	}
 		gettimeofday(&end, NULL);
-		printf("Done\nParallel Time taken(write): %ld\n", ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
-
-//		#pragma omp barrier
-  }
-	//gettimeofday(&end, NULL);
-	//printf("Done\nParallel Time taken: %ld\n", ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
+		printf("Done\nSerail Time taken(write): %ld\n", ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
 	return 0;
 }
  
