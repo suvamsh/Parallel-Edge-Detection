@@ -1,7 +1,7 @@
 
-********************************************************************************
-This is an optimized and parallel implementation of the sobel filter for images
-
+****************************************************************************************************
+This is an optimized and parallel implementation of the sobel filter for bmp formatted images
+****************************************************************************************************
 To setup project run the cd into "s_image" and run "script"
 
 $ ./script

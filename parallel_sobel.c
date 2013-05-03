@@ -149,7 +149,7 @@ int write_bmp(struct image *img)
    
 	 // write image
    fwrite(img->omg_buf, sizeof(unsigned char), (size_t)(long)img->size, f);
-    
+   fflush(f);  
    fclose(f);
     
    return 0;
@@ -319,10 +319,7 @@ int main()
 		gettimeofday(&end, NULL);
 		printf("Done\nParallel Time taken(write): %ld\n", ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
 
-//		#pragma omp barrier
   }
-	//gettimeofday(&end, NULL);
-	//printf("Done\nParallel Time taken: %ld\n", ((end.tv_sec * 1000000 + end.tv_usec) - (start.tv_sec * 1000000 + start.tv_usec)));
 	return 0;
 }
  
