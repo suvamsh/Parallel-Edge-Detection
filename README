@@ -22,3 +22,5 @@ $ ./parallel_sobel
 
 To execute the serial implementation on any environment 
 $ ./serial_sobel
+
+You can edit the number of images to operate on by modifying the value of "ITERS" at the top of the source code
