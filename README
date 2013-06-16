@@ -1,7 +1,7 @@
 
 ****************************************************************************************************
 This is an optimized and parallel implementation of the sobel filter for bmp formatted images to run on The Lonestar Supercomputer at Texas Advanced Computing Center
-A project report is also part of this repository for further information.
+A project report under the name "pcse_final_report.pdf" is also part of this repository for further information.
 ****************************************************************************************************
 To setup project run the cd into "s_image" and run "script"
 
